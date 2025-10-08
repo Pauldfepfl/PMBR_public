@@ -1,0 +1,9 @@
+psychopy == 2023.2.3
+numpy
+csv
+os
+datetime
+pathlib
+argparse
+random
+time
