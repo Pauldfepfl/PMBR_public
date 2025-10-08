@@ -17,6 +17,7 @@ conda activate PMBR_env
 4 - Install all required libraries by running with `pip` (psychopy version 2023.2.3 works for this code)
 
 ```
+pip install --no-deps psychopy==2023.2.3
 pip install -r requirements.txt
 ```
 

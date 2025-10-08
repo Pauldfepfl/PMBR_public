@@ -1,9 +1,18 @@
-psychopy == 2023.2.3
-numpy
-csv
-os
-datetime
-pathlib
-argparse
-random
-time
+numpy == 1.26.4
+six
+pyglet==1.4.11
+pyyaml
+scipy
+json_tricks
+requests
+Pillow
+python-bidi
+pandas
+arabic-reshaper
+freetype-py
+matplotlib
+soundfile
+wxPython==4.2.3 
+pywin32 
+pyqt5 
+psutil

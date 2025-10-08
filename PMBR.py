@@ -6,7 +6,7 @@ Paul de Fontenay, UPHUMMEL EPFL, 2025
 import numpy as np
 import csv
 import os
-from psychopy import visual, core, tools, event, sound, parallel
+from psychopy import visual, core, tools, event, parallel
 from psychopy import gui
 from datetime import datetime
 from pathlib import Path
