@@ -3,7 +3,7 @@ This code implements the Post-Movement Beta Rebound (PMBR) joystick task, descri
 This task investigates the slowing of a movement iniation when occuring within the time window of a PMBR following an ipsilateral movement. 
 
 ## Prerequesites
-- You will need 2 PC-compatble joysticks. We used the Thrustmaster T.16000M as they offer the possibility to switch right- and left-handed configurations.
+- You will need 2 PC-compatible joysticks. We used the Thrustmaster T.16000M as they come with right- and left-handed configurations.
 - Even though the task would work with one screen, it is optimised for a two-screens configuration. One participant screen and one experimenter screen.
    
 ## Installation 
@@ -44,3 +44,4 @@ python PMBR.py
 
 
 Developped by Paul de Fontenay, MSc and Andràs Puszka, MD, PhD
+
