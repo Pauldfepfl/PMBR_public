@@ -43,5 +43,6 @@ python PMBR.py
 3 - Enter the task parameters on the pop up GUI. In the `Set` entry chose practice for practice mode, and standard for the task
 
 
-Developped by Paul de Fontenay, MSc and Andràs Puszka, MD, PhD
+Developped by Paul de Fontenay, MSc and Andràs Puszta, MD, PhD
+
 
