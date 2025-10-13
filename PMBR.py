@@ -26,6 +26,13 @@ n_screen = int(args.monitor)
 #Set parallel port address for triggers
 parallel.setPortAddress(address=0xD010)
 
+#define constants
+joystick_duration = 1 #max duration for center-out joystick movement
+button_duration = 0.6 #max duration for button press
+x_size_increase = 0.2  #size inscrease for the joystick to push's image, x-axis
+y_size_increase = 0.2  #size inscrease for the joystick to push's image, y-axis
+RT_display_time = 5 #duration to display the mean reaction time at the end of the block
+
 
 
 
@@ -37,13 +44,23 @@ def send_trigger(pin):
     It is typically used to send event markers (triggers) to external devices (e.g., EEG systems, DAQ)
     at specific moments in an experiment.
 
+
     Note:
         Only pin #2 is typically used for TI in this specific setup.
+        pin #2 = start stimulation/shift frequencies
+        #3 = end of block
+        #4 = No button response
+        #5 = correct left joystick pushed
+        #6 = Incorrect left joystick pushed
+        #7 = correct right joystick pushed
+        #8 = incorrect right joystick pushed
+        #9 = block start
+
 
     Args:
         pin (int): The parallel port pin number to activate.
     """
-    parallel.setPin(pin,1)
+    parallel.setPin(pin,1) #could use setData() to simultaneously send triggers in different pins 
     time.sleep(0.05)
     parallel.setPin(pin,0)
 
@@ -88,6 +105,7 @@ def get_parameters(skip_gui=False):
         param_dialog.addField('Number of trials',param_settings[4])
         param_dialog.addField('Set', choices=['Standard','Practice'],initial=param_settings[5])
         param_settings=param_dialog.show()
+        #If gui is canceled the task will quit
 
         if param_dialog.OK:
             tools.filetools.toFile('lastParams_PMBR.pickle', param_settings)
@@ -148,9 +166,9 @@ def TI_countdown(window, t):
 
 
 
-def wait_b_pressed(joy, message=None, duration=100, window=None):
+def wait_b_pressed(joy, message=None, duration=button_duration, window=None):
     """
-    Waits for the participant to press joystick trigger or until a timeout occurs.
+    Waits for the participant to press joystick trigger button or until a timeout occurs.
 
     This function monitors the joystick's button input for a given duration (in seconds). 
     If button is pressed, it returns the reaction time (RT) in seconds.
@@ -186,7 +204,7 @@ def wait_b_pressed(joy, message=None, duration=100, window=None):
 
 
 
-def wait_joystick_pushed(joy_r=None,joy_l=None, rect_right_green=None, rect_left_green=None, duration=2, correct_rect=None, rect_left_red=None, rect_right_red=None, joystick_right=None, joystick_left=None, rect_right_black=None, rect_left_black=None):
+def wait_joystick_pushed(joy_r=None,joy_l=None, rect_right_green=None, rect_left_green=None, duration=joystick_duration, correct_rect=None, rect_left_red=None, rect_right_red=None, joystick_right=None, joystick_left=None, rect_right_black=None, rect_left_black=None):
     """
     Waits for a joystick push (center-out movement) from either the left or right joystick
     within a specified time window and records various data including reaction times and monitored joystick positions.
@@ -547,9 +565,9 @@ def show_task(params, nTrials=100):
             core.wait(2)
 
             if i % 2 == 0: 
-                joy_r_image.size += (0.2, 0.2)
+                joy_r_image.size += (x_size_increase, y_size_increase)
                 output = wait_joystick_pushed(joy_r_image,joy_l_image,rect_right_green,rect_left_green, duration=1, correct_rect='right', rect_left_red=rect_left_red, rect_right_red=rect_right_red, joystick_right=joy1, joystick_left=joy2, rect_left_black=rect_left_black, rect_right_black=rect_right_black)
-                joy_r_image.size -= (0.2, 0.2)
+                joy_r_image.size -= (x_size_increase, y_size_increase)
                 win.flip() 
 
                 joy_l_image.draw()
@@ -557,9 +575,9 @@ def show_task(params, nTrials=100):
                 win.flip()  
 
             elif i % 2 == 1:
-                joy_l_image.size += (0.2, 0.2)
+                joy_l_image.size += (x_size_increase, y_size_increase)
                 output = wait_joystick_pushed(joy_r_image,joy_l_image,rect_right_green,rect_left_green, duration=1, correct_rect='left', rect_left_red=rect_left_red, rect_right_red=rect_right_red, joystick_right=joy1, joystick_left=joy2, rect_left_black=rect_left_black, rect_right_black=rect_right_black)
-                joy_l_image.size -= (0.2, 0.2)
+                joy_l_image.size -= (x_size_increase, y_size_increase)
                 win.flip() 
 
                 joy_l_image.draw()
@@ -658,7 +676,7 @@ def show_task(params, nTrials=100):
             press_message.draw()
             win.flip() 
             mouse_clear(mouse)
-            RT_press = wait_b_pressed(joy1, press_message, 0.6, win) # Press message, wait for trigger button press, self paced but lasts for max 0.6s
+            RT_press = wait_b_pressed(joy1, press_message, button_duration, win) # Press message, wait for trigger button press, self paced but lasts for max 0.6s
 
             #TI-EEG trigger
             #send_trigger(pin=2)
@@ -690,13 +708,13 @@ def show_task(params, nTrials=100):
                 # trial where right joystick will be pushed
                 if trial in idx_right: 
                     
-                    joy_r_image.size += (0.15, 0.15) #enlarge the right joystick
+                    joy_r_image.size += (x_size_increase, y_size_increase) #enlarge the right joystick
                     joy_r_image.draw()
                     joy_l_image.draw()
                     rect_right_black.draw()
                     win.flip()
                     output = wait_joystick_pushed(
-                        joy_r_image,joy_l_image,rect_right_green,rect_left_green,1, 
+                        joy_r_image,joy_l_image,rect_right_green,rect_left_green,duration = joystick_duration, 
                         correct_rect='right', rect_left_red=rect_left_red, rect_right_red=rect_right_red,
                           joystick_right=joy1, joystick_left=joy2, rect_left_black=rect_left_black, rect_right_black=rect_right_black) # wait for joystick push, lasts 1 seconds
                    
@@ -709,7 +727,7 @@ def show_task(params, nTrials=100):
                     RT_start_left = output['RT_start_left']
                     time = output['time']
                     
-                    joy_r_image.size -= (0.15, 0.15)
+                    joy_r_image.size -= (x_size_increase, y_size_increase)
                     win.flip() # Clear the screen for the ISI
                     joy_l_image.draw()
                     joy_r_image.draw()
@@ -719,13 +737,13 @@ def show_task(params, nTrials=100):
                 # trial where left joystick will be pushed
                 elif trial in idx_left:  
 
-                    joy_l_image.size += (0.15, 0.15) #enlarge the left joystick
+                    joy_l_image.size += (x_size_increase, y_size_increase) #enlarge the left joystick
                     joy_l_image.draw()
                     joy_r_image.draw()
                     rect_left_black.draw()
                     win.flip()
                     output = wait_joystick_pushed(
-                        joy_r_image,joy_l_image,rect_right_green,rect_left_green,1, 
+                        joy_r_image,joy_l_image,rect_right_green,rect_left_green,duration=joystick_duration, 
                         correct_rect='left', rect_left_red=rect_left_red, rect_right_red=rect_right_red, 
                         joystick_right=joy1, joystick_left=joy2, rect_left_black=rect_left_black, rect_right_black=rect_right_black) # wait for joystick push, lasts 1 seconds
                     
@@ -740,7 +758,7 @@ def show_task(params, nTrials=100):
                     if RT_start_left is not None:
                         RTs += [RT_start_left] # Store RT value to show at the end of the block (we show only the left to avoid potential unlinding/bias from the stimulation, which will target right hand movements)                 
                     
-                    joy_l_image.size -= (0.15, 0.15)
+                    joy_l_image.size -= (x_size_increase, y_size_increase)
                     win.flip() 
                     joy_l_image.draw()
                     joy_r_image.draw()
@@ -812,7 +830,7 @@ def show_task(params, nTrials=100):
         win.flip()
         RT_message.draw()
         win.flip()
-        core.wait(5)
+        core.wait(RT_display_time)
         # Break period
         if block < nb_blocks - 1: # If not the last block
             
@@ -828,7 +846,7 @@ def show_task(params, nTrials=100):
         end_message = visual.TextStim(win, text="End of task. Thank you for your participation!", pos=(0, 0), color=(-1, -1, -1), height=0.05, bold=True)
         end_message.draw()
         win.flip()
-        core.wait(5)  # Wait for 5 seconds before closing
+        core.wait(RT_display_time)  # Wait before closing
     
 
     return 0
