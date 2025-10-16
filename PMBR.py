@@ -6,12 +6,13 @@ Paul de Fontenay, UPHUMMEL EPFL, 2025
 import numpy as np
 import csv
 import os
-from psychopy import visual, core, tools, event, parallel
+from psychopy import visual, core, tools, event#, parallel
 from psychopy import gui
 from datetime import datetime
 from pathlib import Path
 import argparse
 import random
+import pandas as pd
 from psychopy.hardware import joystick
 import time
 
@@ -24,7 +25,7 @@ n_screen = int(args.monitor)
 
 
 #Set parallel port address for triggers
-parallel.setPortAddress(address=0xD010)
+#parallel.setPortAddress(address=0xD010)
 
 #define constants
 joystick_duration = 1 #max duration for center-out joystick movement
@@ -36,7 +37,7 @@ RT_display_time = 5 #duration to display the mean reaction time at the end of th
 
 
 
-def send_trigger(pin):
+'''def send_trigger(pin):
     """
     Sends a short digital trigger pulse through a specified pin on the parallel port.
     
@@ -62,7 +63,7 @@ def send_trigger(pin):
     """
     parallel.setPin(pin,1) #could use setData() to simultaneously send triggers in different pins 
     time.sleep(0.05)
-    parallel.setPin(pin,0)
+    parallel.setPin(pin,0)'''
 
 
 
@@ -94,10 +95,10 @@ def get_parameters(skip_gui=False):
     try:
         param_settings = tools.filetools.fromFile('lastParams_PMBR_.pickle')
     except:
-        param_settings = [1,1,1,10,80, 'Standard']
+        param_settings = [1,1,1,10,84, 'Standard']
    
     if not skip_gui:
-        param_dialog = gui.Dlg('Experimental parameters', pos = [-1200, 100])
+        param_dialog = gui.Dlg('Experimental parameters')#, pos = [-1200, 100])
         param_dialog.addField('ID (1 to 100)',param_settings[0],tip='Must be numeric only (0 to 100)')
         param_dialog.addField('Session',param_settings[1],tip='Must be numeric only')
         param_dialog.addField('Run',param_settings[2],tip='Must be numeric only')
@@ -147,7 +148,7 @@ def TI_countdown(window, t):
     """
 
     clk_text = visual.TextStim(window,text=str(t),pos=(0,0.2),color='black', height=0.07)
-    circle = visual.Circle(window, radius=0.1, pos=(0,0.2), fillColor=None, lineColor=[-0.5,-0.5,-0.5], lineWidth=4)
+    circle = visual.Circle(window, radius=0.1, pos=(0,0.2), fillColor=None, lineColor='black', lineWidth=4)
 
     circle.setAutoDraw(True); clk_text.setAutoDraw(True)
     circle.draw(); clk_text.draw()
@@ -302,11 +303,11 @@ def wait_joystick_pushed(joy_r=None,joy_l=None, rect_right_green=None, rect_left
             if correct_rect == 'right':
                 rect_right_green.autoDraw = True
                 RT = duration - timer.getTime()
-                send_trigger(7) #correct right answer
+                #send_trigger(7) #correct right answer
 
             elif correct_rect == 'left':
                 rect_left_red.autoDraw = True
-                send_trigger(8) #incorrect right answer
+                #send_trigger(8) #incorrect right answer
             joy_l.draw()
             joy_r.draw()
             win.flip()
@@ -340,12 +341,12 @@ def wait_joystick_pushed(joy_r=None,joy_l=None, rect_right_green=None, rect_left
 
             if correct_rect == 'right':
                 rect_right_red.autoDraw = True
-                send_trigger(6) #incorrect left answer
+                #send_trigger(6) #incorrect left answer
 
             elif correct_rect == 'left':
                 rect_left_green.autoDraw = True
                 RT = duration - timer.getTime()
-                send_trigger(5) #correct left answer
+                #send_trigger(5) #correct left answer
             joy_l.draw()
             joy_r.draw()
             win.flip()
@@ -448,7 +449,7 @@ def show_task(params, nTrials=100):
 
     """
     
-    global run_path, win
+    global run_path, win, conditions_df
     
     instructions2_0=visual.TextStim(win,text="Joystick Task",pos=(0,0.4),color=(-1,-1,-1),height=0.05,bold=True)
     instructions2_1=visual.TextStim(win,text="Please press the trigger button under your right index finger when you see the message:",pos=(0,0.2),color=(-1,-1,-1),height=0.04)
@@ -634,7 +635,7 @@ def show_task(params, nTrials=100):
     RT_start_right = 0
     RT_start_left = 0
 
-    send_trigger(pin=2) #start stimulation
+    #send_trigger(pin=2) #start stimulation
 
 
     TI_countdown(win, t=5) # Ramp-up period
@@ -647,7 +648,10 @@ def show_task(params, nTrials=100):
     for block in range(nb_blocks):
         log['Block'] = block + 1
         RTs = []
-        
+        #load conditions from file
+        conditions = conditions_df[conditions_df['block'] == block + 1]
+        task_conditions = conditions['task_condition'].values
+
         # Ensure all blocks are the same duration by uniformally distributing the jitters
         jitters_1 = np.linspace(0.65, 0.85, nb_trials)
         jitters1shuffled = np.random.permutation(jitters_1)
@@ -655,9 +659,11 @@ def show_task(params, nTrials=100):
         jitters_2 = np.linspace(1, 2, nb_trials)
         jitters2shuffled = np.random.permutation(jitters_2)
         jitters_2 = [round(i, 2) for i in jitters2shuffled]
-        send_trigger(9) #block start
+        #send_trigger(9) #block start
 
         for trial in range(nb_trials):
+
+            condition = task_conditions[trial]
             
             RT_press=0
             RT_end_right = 0
@@ -696,17 +702,19 @@ def show_task(params, nTrials=100):
                 
 
                 if RT_press == 1:
-                    send_trigger(pin=4) # No response
+                    #send_trigger(pin=4) # No response
+                    print('hi')
                 else:
-                    send_trigger(pin=2) # Response
+                    #send_trigger(pin=2) # Response
                     #send_trigger(pin=3)
+                    print('hello')
                     
                 isi = jitters_1[trial] # Get the jitter for this trial 
                 core.wait(isi) # Wait for ~0.75 seconds before the joystick push
 
 
                 # trial where right joystick will be pushed
-                if trial in idx_right: 
+                if condition == 2: 
                     
                     joy_r_image.size += (x_size_increase, y_size_increase) #enlarge the right joystick
                     joy_r_image.draw()
@@ -735,7 +743,7 @@ def show_task(params, nTrials=100):
 
 
                 # trial where left joystick will be pushed
-                elif trial in idx_left:  
+                elif condition == 3:  
 
                     joy_l_image.size += (x_size_increase, y_size_increase) #enlarge the left joystick
                     joy_l_image.draw()
@@ -825,7 +833,7 @@ def show_task(params, nTrials=100):
 
         joy_l_image.autoDraw = False
         joy_r_image.autoDraw = False
-        send_trigger(3) #end of block
+        #send_trigger(3) #end of block
         RT_message=visual.TextStim(win,text=f"Average Reaction Time: {np.round(np.nanmean(RTs),3)}",pos=(0,0),color=(-1,-1,-1),height=0.05,bold=True)
         win.flip()
         RT_message.draw()
@@ -905,6 +913,8 @@ with open(params_path, 'a+') as f:
 win = visual.Window(fullscr=True,monitor='testMonitor',screen=1,units="height",color=[-0.5,-0.5,-0.5])
 print(f"RefreshRate: {win.getActualFrameRate()} Hz")
 
+#load conditions
+conditions_df = pd.read_csv('trial_conditions.csv')
 
 #run the task
 show_task(params)
