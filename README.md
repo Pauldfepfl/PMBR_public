@@ -4,7 +4,7 @@ This task investigates the slowing of a movement iniation when occuring within t
 
 ## Prerequesites
 - You will need 2 PC-compatible joysticks. We used the Thrustmaster T.16000M as they come with right- and left-handed configurations.
-- Even though the task would work with one screen, it is optimised for a two-screens configuration. One participant screen and one experimenter screen.
+- Even though the task would work with one screen, it is optimised for a two-screens configuration. One participant screen and one experimenter screen. Important note: Both screens' refreshing rate must be 144Hz minimum.
    
 ## Installation 
 
@@ -44,5 +44,6 @@ python PMBR.py
 
 
 Developped by Paul de Fontenay, MSc and Andràs Puszta, MD, PhD
+
 
 
